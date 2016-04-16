@@ -20,7 +20,7 @@ double volume=0;
 boolean paused=false;
 //String exp=("4.64-(x^2^(1/3))");
 //x  y z expressions
-String exp="x^2";
+String exp="x+(cosx+siny)";
 String tempexp="";
 void setup(){
       size(500, 450,P3D);
