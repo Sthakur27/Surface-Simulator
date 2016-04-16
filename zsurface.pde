@@ -18,9 +18,14 @@ float rx=0;
 float rz=0;
 double volume=0;
 boolean paused=false;
-//String exp=("4.64-(x^2^(1/3))");
-//x  y z expressions
-String exp="x+(cosx+siny)";
+//function/expressions
+String exp=
+//"x+(cosx+siny)";
+//"cos(x/2)+sin(y/2)";
+"y*x^2";
+//"y/(1+x^2)";
+//"cosx+y*siny";
+//"x^3+y^3+x*y^2";
 String tempexp="";
 void setup(){
       size(500, 450,P3D);
@@ -32,7 +37,8 @@ void setup(){
 void draw(){
     background(255,255,255);
     fill(0);
-    text("z=("+exp+")",10,20,0);
+    if (typing){fill(#f42121);}
+    text("z= "+exp,10,20,0);
     if(rchoose==3){
       text("Scroll Mode Y axis stretch",10,40,0);
     }
