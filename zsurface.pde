@@ -17,28 +17,38 @@ float ry=0;
 float rx=0;
 float rz=0;
 double volume=0;
+float dheight;
 boolean paused=false;
-//function/expressions
+//x  y z expressions
 String exp=
+//"x^3+y^3";//windows
 //"x+(cosx+siny)";
-//"cos(x/2)+sin(y/2)";
-"y*x^2";
-//"y/(1+x^2)";
-//"cosx+y*siny";
-//"x^3+y^3+x*y^2";
+//"y*2^cosx";
+//"y*cos(x*p/10)";
+//"(x^2+y^2)*cos(y*p/5)";
+//"(x^2+y^2)*cos(x*p/10)*sin(y*p/10)";
+//"x*y+30*cosx";
+//"y/(x^2+1)";
+//"1/(x^2+y^2+1)";
+//"x^3/(x^2+y^2+1)";
+//"cosx/(y^2+1)";
+//(x+y)*sin(y*p/10)";
+//"x*y*cos(x*p/10)*sin(y*p/10)";
+//"sin((x/4)^2+(y/4)^2)";
+"(sin((x/4)^2+(y/4)^2))^2";
+//"cos((x/3)^2+y/3)";
 String tempexp="";
 void setup(){
       size(500, 450,P3D);
       //parse.test();
       calculate();
+      dheight=height;
       //surface.setResizable(true);
 }
 
 void draw(){
     background(255,255,255);
     fill(0);
-    if (typing){fill(#f42121);}
-    text("z= "+exp,10,20,0);
     if(rchoose==3){
       text("Scroll Mode Y axis stretch",10,40,0);
     }
@@ -51,6 +61,8 @@ void draw(){
     else{
       text(" X-Y axis Tilt",10,40,0);
     }
+    if (typing){fill(#f42121);}
+    text("z= "+exp,10,20,0);
     translate(width/2,height/2,0);
     rotateY(timer2*PI/180);
     rotateY(ry);
@@ -65,20 +77,27 @@ void draw(){
         textSize(15); fill(0);
         
         //x axis
-        line(-150,0,0,150,0,0);
-        //line(-width/2,0,0,width/2,0,0);
-        text("X",105,0,0);
-        
-        //y
-        line(0,-150,0,0,150,0);
-        //line(0,-height/2,0,0,height/2,0);        
-        text("Z",0,-105,0);
+        line(-150*xscale,0,0,150*xscale,0,0);
+        text("X",105*xscale,0,0);
         
         //z
-        line(0,0,-150,0,0,150);
-        //line(0,0,-height/2,0,0,height/2); 
+        line(0,-150*zscale,0,0,150*zscale,0);        
+        text("Z",0,-105*zscale,0);
         
-        text("Y",0,0,105);
+        //y
+        line(0,0,-150*yscale,0,0,150*yscale);        
+        text("Y",0,0,105*yscale);
+        /*//x axis
+        line(-150*xscale*height/450,0,0,150*xscale*height/450,0,0);
+        text("X",105*xscale*height/450,0,0);
+        
+        //z
+        line(0,-150*zscale*height/450,0,0,150*zscale*height/450,0);        
+        text("Z",0,-105*zscale*height/450,0);
+        
+        //y
+        line(0,0,-150*yscale*height/450,0,0,150*yscale*height/450);        
+        text("Y",0,0,105*yscale*height/450);*/
     }
     
     stroke(#aa03eb);
@@ -87,13 +106,8 @@ void draw(){
     //draw function
     for (int i=0;i<xvals.size()-1;i++){
         drawSurface(i);
-        if((i)%81==0){
-          drawBundles(i);
-          drawBundles(i+20);
-          drawBundles(i+40);
-          drawBundles(i+60);
-          drawBundles(i+80);
-        }
+        drawBundles(i);
+        
     }
     if(timer<360){timer+=3;}
 }
@@ -108,6 +122,7 @@ void calculate(){
        zvals.append(-10*parse.zreturnlist.get(i).floatValue());
    }
   rescale(xvals); rescale(yvals); rescale(zvals);
+  //xscale=1;yscale=1;zscale=1;
   //volume=abs((float)integrate(-10,10));
 }
 
@@ -160,8 +175,9 @@ void keyPressed(){
 
    if(key=='r'||key=='R'){
       rx=0; rz=0;  timer2=0; 
+      xscale=1;yscale=1;zscale=1;
    }
-   if(key=='p'||key=='P'){
+   if((key=='p'||key=='P')&&!typing){
      if(!paused){paused=true;}else{   paused=false;}
    }
    if(keyCode==LEFT){
@@ -173,7 +189,8 @@ void keyPressed(){
    if(keyCode==ENTER){
        if(typing){typing=false; 
        //println("");println("processing "+exp); 
-      rx=0; rz=0; timer2=0; calculate();} 
+     rx=0; rz=0;
+    timer2=0; calculate();} 
        else{typing=true;exp=new String("");
        //println("");println("--Start typing expression: y=");
        }
