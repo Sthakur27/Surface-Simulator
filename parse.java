@@ -10,7 +10,7 @@ public class parse{
     static ArrayList<Double> xreturnlist=new ArrayList<>();
     static ArrayList<Double> yreturnlist=new ArrayList<>();
     static ArrayList<Double> zreturnlist=new ArrayList<>();
-    public static void zinterp(String str1, double start, double end, double step){
+    public static void zinterp(String str1, double start, double end, double step,boolean squared){
         xreturnlist.clear();
         yreturnlist.clear();
         zreturnlist.clear();
@@ -32,6 +32,12 @@ public class parse{
              xreturnlist.add(j);
              yreturnlist.add(i);
              zreturnlist.add(answer);}
+          }
+        }
+        if(squared){
+          int size=xreturnlist.size();
+          for(int i=0;i<size;i++){
+             zreturnlist.set(i,Math.pow(zreturnlist.get(i),0.5));
           }
         }
     }

@@ -16,9 +16,12 @@ float maxval=0;
 float ry=0;
 float rx=0;
 float rz=0;
+int numofxs=80;
 double volume=0;
 float dheight;
 boolean paused=false;
+boolean halfinterval=false;
+boolean zsquared=false;
 //x  y z expressions
 String exp=
 //"x^3+y^3";//windows
@@ -35,7 +38,14 @@ String exp=
 //(x+y)*sin(y*p/10)";
 //"x*y*cos(x*p/10)*sin(y*p/10)";
 //"sin((x/4)^2+(y/4)^2)";
-"(sin((x/4)^2+(y/4)^2))^2";
+"x^2-y^2";
+//"log((((x/3)^2-(y/3)^2)^2^0.5)+1)";
+//"sin((x/4)^2-(y/4)^2)";
+//"cos((x/4)^2+(y/4)^2)+sin((x/4)^2-(y/4)^2)";
+//sin(x*y/9);
+//sin(x*y^2/27);
+//"sin((x/3)^2-(y/3)^2)";
+//"(sin((x/4)^2+(y/4)^2))^2";
 //"cos((x/3)^2+y/3)";
 String tempexp="";
 void setup(){
@@ -43,26 +53,28 @@ void setup(){
       //parse.test();
       calculate();
       dheight=height;
-      //surface.setResizable(true);
+      surface.setResizable(true);
 }
 
 void draw(){
     background(255,255,255);
     fill(0);
-    if(rchoose==3){
+    if(rchoose==2){
       text("Scroll Mode Y axis stretch",10,40,0);
     }
-    else if(rchoose==4){
+    else if(rchoose==3){
       text("Scroll Mode X axis stretch",10,40,0);
     }
-    else if(rchoose==2){
+    else if(rchoose==4){
       text("Scroll Mode Z axis stretch",10,40,0);
     }
     else{
       text(" X-Y axis Tilt",10,40,0);
     }
     if (typing){fill(#f42121);}
-    text("z= "+exp,10,20,0);
+    if(zsquared){
+    text("z^2= "+exp,10,20,0);}
+    else{text("z= "+exp,10,20,0);}
     translate(width/2,height/2,0);
     rotateY(timer2*PI/180);
     rotateY(ry);
@@ -105,16 +117,24 @@ void draw(){
     
     //draw function
     for (int i=0;i<xvals.size()-1;i++){
-        drawSurface(i);
-        drawBundles(i);
-        
+        drawSurface(i,1);
+        drawBundles(i,1);        
+    }
+    if(zsquared){
+      for (int i=0;i<xvals.size()-1;i++){
+        drawSurface(i,-1);
+        drawBundles(i,-1);        
+      }
     }
     if(timer<360){timer+=3;}
+    dheight=height;
 }
 
 void calculate(){
   xvals.clear(); yvals.clear(); zvals.clear();
-  parse.zinterp(exp,-10,10,0.25);
+  if(zsquared && halfinterval){
+  parse.zinterp(exp,-10,10,0.5,zsquared);}
+  else{parse.zinterp(exp,-10,10,0.25,zsquared);}
   for (int i=0;i<parse.xreturnlist.size();i++){
        //print(parse.thetaorx.get(i).floatValue()); print("    "); println(parse.rory.get(i).floatValue());
        xvals.append(10*parse.xreturnlist.get(i).floatValue());
@@ -132,12 +152,16 @@ void rescale(FloatList list){
   for (int i=0;i<list.size();i++){
          if (abs(list.get(i))>maxval){
             maxval=abs(list.get(i));
+            if(100/maxval==0){
+                maxval=abs(list.get(i-1));
+                break;
+            }
          }
   }
   if(maxval==0){autoscale=1;}
   else{
     autoscale=100/maxval;}
-  if (autoscale==0){autoscale=200; }
+  if (autoscale==0){autoscale=5; }
   for (int i=0;i<list.size();i++){
      list.mult(i,autoscale);
   }
@@ -146,17 +170,17 @@ void rescale(FloatList list){
 
 
 
-void drawSurface(int i){
+void drawSurface(int i,int sign){
   if(xvals.get(i)!=100){
-  line(xscale*xvals.get(i),zscale*zvals.get(i),yscale*yvals.get(i),xscale*xvals.get(i+1),zscale*zvals.get(i+1),yscale*yvals.get(i+1));  }
+  line(xscale*xvals.get(i),sign*zscale*zvals.get(i),yscale*yvals.get(i),xscale*xvals.get(i+1),sign*zscale*zvals.get(i+1),yscale*yvals.get(i+1));  }
   //else{println(i);}
 }
 
 //draws bundles to form net
 //80 +81t
-void drawBundles(int i){
-  if(xvals.size()-81>i){
-  line(xscale*xvals.get(i),zscale*zvals.get(i),yscale*yvals.get(i),xscale*xvals.get(i+81),zscale*zvals.get(i+81),yscale*yvals.get(i+81)); }
+void drawBundles(int i,int sign){
+  if(xvals.size()-(numofxs+1)>i){
+  line(xscale*xvals.get(i),sign*zscale*zvals.get(i),yscale*yvals.get(i),xscale*xvals.get(i+numofxs+1),sign*zscale*zvals.get(i+numofxs+1),yscale*yvals.get(i+numofxs+1)); }
 }
 
 void rotate(){
@@ -172,10 +196,21 @@ void keyPressed(){
    }
    
    if((key=='a'||key=='A')&& !typing){   if(axis){axis=false;} else{axis=true;}   }
+   if((key=='z'||key=='Z')&& !typing){   
+       if(zsquared){zsquared=false; 
+         if(halfinterval){numofxs=80;} calculate(); } 
+       else{zsquared=true; if(halfinterval){numofxs=40;} calculate();}   }
+   if(key=='s'||key=='S'){
+       xscale=dheight/450;
+       yscale=dheight/450;
+       zscale=dheight/450;
+   }
 
    if(key=='r'||key=='R'){
       rx=0; rz=0;  timer2=0; 
-      xscale=1;yscale=1;zscale=1;
+       xscale=dheight/450;
+       yscale=dheight/450;
+       zscale=dheight/450;
    }
    if((key=='p'||key=='P')&&!typing){
      if(!paused){paused=true;}else{   paused=false;}
@@ -189,8 +224,8 @@ void keyPressed(){
    if(keyCode==ENTER){
        if(typing){typing=false; 
        //println("");println("processing "+exp); 
-     rx=0; rz=0;
-    timer2=0; calculate();} 
+       rx=0; rz=0;
+       timer2=0; calculate();} 
        else{typing=true;exp=new String("");
        //println("");println("--Start typing expression: y=");
        }
@@ -211,19 +246,19 @@ void mouseClicked(){
 }
 void mouseWheel(MouseEvent event) {
   int e = event.getCount();
-  if(rchoose==2){
-    if(e>0){ zscale=zscale/1.1;}
-    else{zscale=zscale*1.1;}   
-  }
   if(rchoose==1){
     rz-=5*e*PI/180;    
   }
-  if(rchoose==3){
+  if(rchoose==2){
     if(e>0){ yscale=yscale/1.1;}
     else{yscale=yscale*1.1;} 
   }
-  if(rchoose==4){
+  if(rchoose==3){
     if(e>0){ xscale=xscale/1.1;}
     else{xscale=xscale*1.1;} 
+  }
+  if(rchoose==4){
+    if(e>0){ zscale=zscale/1.1;}
+    else{zscale=zscale*1.1;}   
   }
 }
